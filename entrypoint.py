@@ -14,6 +14,7 @@ def run_cmd(cmd: list, cwd: PathLike=None):
 
 def run():
     print(run_cmd("git config --get user.email".split()))
+    print(run_cmd("ls -al".split()))
 
 if __name__ == "__main__":
     run()
