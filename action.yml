@@ -1,0 +1,15 @@
+name: 'Branch Ops'
+description: 'Operate on a branch and verify checks againt github'
+inputs:
+  github-token:
+    description: 'Github Token with write permissions'
+    required: true
+  dest-branch:
+    description: 'Branch to push to after commit'
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.dest-branch}}
+
