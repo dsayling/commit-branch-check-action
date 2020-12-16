@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from os import PathLike
+import os
 import subprocess
 
 def run_cmd(cmd: list, cwd: PathLike=None):
@@ -14,7 +15,7 @@ def run_cmd(cmd: list, cwd: PathLike=None):
 
 def run():
     print(run_cmd("git config --get user.email".split()))
-    print(run_cmd("ls -al".split()))
+    print(os.getenv('GITHUB_ACTOR'))
 
 if __name__ == "__main__":
     run()
