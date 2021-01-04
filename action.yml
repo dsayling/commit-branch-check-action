@@ -1,5 +1,5 @@
-name: 'Branch Ops'
-description: 'Operate on a branch and verify checks againt github'
+name: 'Commit Force-Push'
+description: 'Create a new commit and force push it to a branch '
 inputs:
   github-token:
     description: 'Github Token with write permissions'
@@ -7,31 +7,20 @@ inputs:
   dest-branch:
     description: 'Branch to push to after commit'
     required: false
-  force-push:
-    description: 'Force push to the dest-branch. Use caution, can overwrite history'
-    required: false
   verify-checks:
-    description: ''
+    description: 'Verify the checks against the branch, if pushed'
     required: false
-  src-branch:
-    description: 'Branch to pull from; defaults to current branch'
-    required: false
-  rebase:
-    description: 'Pull and rebase branch before the commit, if branch does not exist this is a no-op'
+    default: 'false'
+  delete-after-checks:
+    description: 'If checks have been verified, delete the branch'
     required: false
     default: 'false'
   commit-message:
-    description: 'Provide commit message if you would like to commit'
+    description: 'Provide commit message if you would like to commit, file add still occurs'
     required: false
   files:
     description: 'Specific files to add before the commit.'
     required: false
-    default: ''
-  force-add-files:
-    description: 'Force add files before commit, adds untracked files'
-    required: false
-    default: 'false'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-
