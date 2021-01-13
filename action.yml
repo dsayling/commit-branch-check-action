@@ -1,6 +1,6 @@
 name: 'Commit and Push Branch'
 author: 'Drew Ayling'
-description: 'Create a new commit and force push it to a branch. Optionally verify any checks that run from that push and optionally delete the branch.'
+description: 'Create a new commit and force push it to a branch. Optionally, verify any checks and delete the branch.'
 inputs:
   github-token:
     description: 'Github Token with write permissions'
