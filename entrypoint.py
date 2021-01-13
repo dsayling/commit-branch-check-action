@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
-import time
-from os import PathLike
+"""
+This module is the entrypoint script to the Dockerfile that runs the github action.
+Two generic helper functions, run_cmd and get_env are used generically and can be copied.
+The required envars are loaded at import time.
+The run method is called when run as a script.
+The git operations have been broken down into smaller functions to simplify usage.
+"""
 import os
 import shlex
 import subprocess
+import sys
+import time
+from os import PathLike
+
 import requests
 
 
@@ -62,11 +71,13 @@ actor = get_env("GITHUB_ACTOR")
 
 
 def write_net_rc():
-    with open(os.path.join(os.getenv("HOME"), ".netrc"), "w") as f:
-        f.write(f"machine github.com\n" f"login {actor}\n" f"password {github_token}\n")
+    """Write out the netrc file in the home directory."""
+    with open(os.path.join(os.getenv("HOME"), ".netrc"), "w") as _:
+        _.write(f"machine github.com\n" f"login {actor}\n" f"password {github_token}\n")
 
 
 def add_files():
+    """git add the specified files or use -A."""
     cmd = "git add "
     if files:
         cmd += files
@@ -75,25 +86,21 @@ def add_files():
     run_cmd(cmd)
 
 
-def pull_dest():
-    # maybe I should fetch first, and then we can determine this.
-    # if dest_branch is not set, rebase makes sense. If dest branch is set,
-    #   then I dunno if a rebase makes sense unless I commit the changes to the dest branch...?
-    cmd = "git fetch --all "
-    # cmd += f"{dest_branch} " if dest_branch else ''
-    # cmd += "--rebase --progress" if rebase else ''
-    run_cmd(cmd)  # need to manually check std_err
-
-
 def delete_dest_branch():
-    run_cmd(f"git checkout -b throw-away")
+    """Checkout a random branch to delete the branch
+    and push the deleted ref.
+    """
+    run_cmd("git checkout -b throw-away")
     run_cmd(f"git branch -d {dest_branch}")
     run_cmd(f"git push origin --delete {dest_branch}")
 
 
 def wait_on_branch_checks():
+    """Check the github api for the status of the branch checks.
+    Raises an exception on a check error.
+    """
     # determine the hash of the head we just pushed to dest_branch
-    out, _ = run_cmd(f"git ls-remote -q")
+    out, _ = run_cmd("git ls-remote -q")
     ref_hash = None
     for i in out.splitlines():
         if dest_branch in i:
@@ -103,16 +110,19 @@ def wait_on_branch_checks():
     # now use the checks API to verify completed and success
     status = "unknown"
     # TODO: determine the latest check based on the datetime, for now assumes 0 index is latest
+    # TODO: set a proper timeout on this never-ending loop
     while status != "completed":
         print(f"Verifying github checks against {ref_hash}, current status: {status}")
         # the checks API takes a second or two to register the queued checks...
+        # TODO: make this polling interval configurable due to GitHub's api limits
+        # TODO: check the response header for the current api limit and set the time based on that
         time.sleep(10)
         resp = requests.get(
             f"https://api.github.com/repos/{repo_ref}/commits/{ref_hash}/check-runs"
         )
         status = resp.json().get("check_runs", [{}])[0].get("status")
     conclusion = resp.json().get("check_runs", [{}])[0].get("conclusion")
-    if "success" != conclusion:
+    if conclusion != "success":
         print(
             f"{repo_ref} commit {ref_hash} github checks failed with conclusion {conclusion}\n\
             raising exception now, visit {dest_branch} branch checks for more information"
@@ -121,25 +131,28 @@ def wait_on_branch_checks():
 
 
 def run():
-    # Setup git config - we need to be able to commit and push
-    # Add the files, force if necessary and commit and changes
-    # Push, with force
-    # Verify github checks against the branch
+    """
+    Setup git config - we need to be able to commit and push.
+    Add the files, force if necessary and commit and changes.
+    Push, with force.
+    Verify github checks against the branch, if requested
+    Delete branch, if requested
+    """
 
     run_cmd(f"git config --global user.email {actor}@noreply")
     run_cmd(f"git config --global user.name {actor}")
     write_net_rc()
     add_files()
     run_cmd("git status")
-    # Originally I figured we'd try and update the remote branch with the local change.
-    # I think the better choice here is to simple force push on the branch, TBH.
-    # I really only care about the one change between the src_branch, and making sure that it gets tested via a branch workflow.
-    run_cmd(f"git commit -m '{commit_message}'") if commit_message else None
+    # use a generic commit message if one is not specified
+    cmessage = f"Automated from {src_ref}" if not commit_message else commit_message
+    run_cmd(f"git commit -m '{cmessage}'")
     run_cmd(f"git switch -c {dest_branch}")
     run_cmd(f"git push origin {dest_branch} -f -v")
-    wait_on_branch_checks() if verify_checks else exit(0)
+    # pylint: disable=W0106
+    wait_on_branch_checks() if verify_checks else sys.exit(0)
     # if there's success, delete the branch, failure will leave the branch up
-    delete_dest_branch() if delete_branch else exit(0)
+    delete_dest_branch() if delete_branch else sys.exit(0)
 
 
 if __name__ == "__main__":
