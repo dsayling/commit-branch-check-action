@@ -153,7 +153,7 @@ def run():
     else:
         run_cmd("git config --global push.default current")
         run_cmd(f"git switch -c {src_ref}")
-        run_cmd(f"git push origin {src_ref}")
+        run_cmd(f"git push origin {src_ref} -f -v")
     # pylint: disable=W0106
     wait_on_branch_checks() if verify_checks else sys.exit(0)
     # if there's success, delete the branch, failure will leave the branch up
