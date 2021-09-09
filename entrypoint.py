@@ -147,8 +147,12 @@ def run():
     # use a generic commit message if one is not specified
     cmessage = f"Automated from {src_ref}" if not commit_message else commit_message
     run_cmd(f"git commit -m '{cmessage}'")
-    run_cmd(f"git switch -c {dest_branch}")
-    run_cmd(f"git push origin {dest_branch} -f -v")
+    if dest_branch:
+        run_cmd(f"git switch -c {dest_branch}")
+        run_cmd(f"git push origin {dest_branch} -f -v")
+    else:
+        run_cmd("git config --global push.default current")
+        run_cmd(f"git push")
     # pylint: disable=W0106
     wait_on_branch_checks() if verify_checks else sys.exit(0)
     # if there's success, delete the branch, failure will leave the branch up
