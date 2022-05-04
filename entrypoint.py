@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 from os import PathLike
+from plumbum import local
 
 import requests
 
