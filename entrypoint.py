@@ -139,8 +139,15 @@ def run():
     Delete branch, if requested
     """
 
-    run_cmd(f"git config --global user.email {actor}@noreply")
-    run_cmd(f"git config --global user.name {actor}")
+    email = local.env.get('INPUT_EMAIL', f'{github_actor}@users.noreply.github.com')
+    name = local.env.get('INPUT_NAME', github_actor)
+    
+    git = local['git']
+    
+    debug(git(['config', '--global', 'user.email', email]))
+    debug(git(['config', '--global', 'user.name', name]))
+    debug(git(['config', '--global', '--add', 'safe.directory', '/github/workspace']))
+    
     write_net_rc()
     add_files()
     run_cmd("git status")
