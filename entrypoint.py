@@ -141,6 +141,8 @@ def run():
 
     run_cmd(f"git config --global user.email {actor}@noreply")
     run_cmd(f"git config --global user.name {actor}")
+    run_cmd(f"git config --global --add safe.directory /github/workspace")
+    
     write_net_rc()
     add_files()
     run_cmd("git status")
