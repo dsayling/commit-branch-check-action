@@ -9,3 +9,29 @@ Please note, you could easily end up in a neverending recursion loop, where you 
 
 Verifying the github checks is optional, as well as the ability to delete the newly created branch.
 
+## Usage
+
+```
+name: example-workflow
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: Replace do what you want
+      run: 
+    - name: commit-push_branch-test
+      uses: dsayling/commit-branch-check-action@v0.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Update from ${{github.event.pull_request.head.ref}}"
+        dest-branch: ${{github.event.pull_request.head.sha }}-new
+        verify-checks: true
+        delete-after-checks: true
+```
