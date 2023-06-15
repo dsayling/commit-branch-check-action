@@ -1,3 +1,7 @@
+# Support Notice ⚠️ 
+
+This action was created before the github authored [branch-deploy](https://github.com/github/branch-deploy) action. I suggest using that now.
+
 # commit-branch-check-action
 Action to commit changes to a branch, push the changes, and verify any checks.
 
